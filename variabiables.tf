@@ -1,25 +1,11 @@
 
 variable "region" {
-  description = "Please enter AWS Region to deploy Server"
-  type        = string
-  default     = "us-east-2"
+  description = "Please Enter the region where you want to deploy your infrastructure"
 }
-
-
 variable "instance_type" {
-  description = "Which type of EC2 you want to use"
-  type        = string
-  default     = "t3.micro"
+  description = "Choose your instance type"
 }
-
-variable "allow_ports" {
-  description = "List of Ports to open for server EC2"
-  type        = list(any)
-  default     = ["80", "443", "22", "8080"]
-}
-
-#boolian value
-variable "enable_detailed_monitoring" {
-  type    = bool
-  default = "true"
-}
+variable "tagOwner" {}
+variable "tagProject" {}
+variable "awsAccessKey" {}
+variable "awsSecretKey" {}
