@@ -1,4 +1,4 @@
-# This is IaC Terrafrom for the Bastion AWS with configuration of ASG
+# This is IaC Terrafrom for the Bastion AWS and configuration of ASG with EIP assigning
 ![](Basion_host_ASG.JPG)
 
 The system has set up an auto-scaling group. If the Bastion host will be terminated or stopped, after 1 min ASG starts the Bastion again with the same elastic IP automatically.<br /> 
@@ -18,4 +18,4 @@ Creating an IAM policy using Terraform<br />
 Attaching the policy to the role using Terraform<br />
 Creating the IAM instance profile using Terraform<br />
 Assigning the IAM role to an EC2 instance on the fly using Terraform<br /> 
-SSH - Please choose your own keys or create via ssh-keygen, in the code, you can find the name of the key and modify it
+SSH - Please choose your own keys or create via ssh-keygen, in the code, you can find the name of the key and modify it<br />
