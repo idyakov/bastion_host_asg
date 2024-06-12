@@ -9,3 +9,7 @@ variable "tagOwner" {}
 variable "tagProject" {}
 variable "awsAccessKey" {}
 variable "awsSecretKey" {}
+variable "roleName" {
+  default = "bastion-role"
+}
+#

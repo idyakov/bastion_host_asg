@@ -23,7 +23,7 @@ data "aws_ami" "latest_amazon_linux" {
 
 # Allocation of EIP
 resource "aws_eip" "bastion-host" {
-  vpc = true
+  domain = "vpc"
 }
 
 resource "aws_launch_configuration" "bastion" {
@@ -38,7 +38,7 @@ resource "aws_launch_configuration" "bastion" {
   #    Name = var.tagProject
   #  }
 
-  #Connection with privat ssh key
+  #Connection with private ssh key
   connection {
     type        = "ssh"
     user        = "ec2-user"
@@ -46,64 +46,57 @@ resource "aws_launch_configuration" "bastion" {
     host        = self.public_ip
   }
   depends_on = [aws_eip.bastion-host] #we have to allocate the eip first, and then create the launch configuration
-
+#
 }
 
 # 1.Creating an AWS IAM role
-resource "aws_iam_role" "test_role" {
-  name               = "EIP-role"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
+# Define assume-role policy
+data "aws_iam_policy_document" "assume_role_ec2" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
     }
-  ]
-}
-EOF
-}
-# 2.Creating an IAM policy
-resource "aws_iam_policy" "test_policy" {
-  name   = "test_policy"
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-          "ec2:AssociateAddress", "ec2:DescribeAddresses", "ec2:DescribeTags", "ec2:DescribeInstances"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+
+    actions = ["sts:AssumeRole"]
+  }
 }
 
-# 3.Attaching the policy to the role
-# The value for the roles parameter has been accessed from the resource block, which we created in step 1.
-#     Explanation:
-#     aws_iam_role is the type of the resource block which we created in step 1.
-#     aws_iam_role.test_role is the name of the variable which we defined.
-#     name is a property of that resource block.
-resource "aws_iam_policy_attachment" "test-attach" {
-  name       = "test-attachment"
-  roles      = ["${aws_iam_role.test_role.name}"]
-  policy_arn = aws_iam_policy.test_policy.arn #                policy_arn = "${aws_iam_policy.policy.arn}"
+# Define role
+# aassume role policy and permissions policy can be done together
+resource "aws_iam_role" "bastion_instance_role" {
+  name               = var.roleName
+  assume_role_policy = data.aws_iam_policy_document.assume_role_ec2.json
+  inline_policy {
+    name = "bastion_policy"
+
+    policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          "Action": [
+              "ec2:AssociateAddress",
+              "ec2:DisassociateAddress",
+              "ec2:DescribeAddresses",
+              "ec2:DescribeTags",
+              "ec2:DescribeInstances"
+          ],
+          Effect   = "Allow"
+          Resource = "*"
+        },
+      ]
+    })
+  }
+  path = "/"
 }
 
-# 4.Creating the IAM instance profile
-# The value for the roles parameter has been accessed from the resource block, which we created in step 1.
+# Instance profile to associate above role with bastion
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "bastion_profile"
-  role = aws_iam_role.test_role.name
+  name = "bastion_instance_profile"
+  path = "/"
+  role = aws_iam_role.bastion_instance_role.id
 }
 
 # Auto Scaling Group using 2 Availability zones
@@ -128,26 +121,27 @@ resource "aws_autoscaling_group" "bastion" {
     }
   }
 }
+
 #Creating of Security group
+
+# Gets public IP address of your broadband so the security group can be locked down.
+data "http" "my_ip_address" {
+  url = "http://checkip.amazonaws.com"
+  request_headers = {
+    Accept = "text/plain"
+  }
+}
+
+# Only you have access to the bastion
 resource "aws_security_group" "my_Bastion_host" {
   name        = "Dynamic_security_group"
   description = "Bastion_host_SG"
-
-  dynamic "ingress" {
-    for_each = ["22"]
-    content {
-      from_port   = ingress.value
-      to_port     = ingress.value
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  }
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${chomp(data.http.my_ip_address.response_body)}/32"]
   }
   egress {
     from_port   = 0
@@ -167,4 +161,9 @@ resource "aws_default_subnet" "default_az1" {
 
 resource "aws_default_subnet" "default_az2" {
   availability_zone = data.aws_availability_zones.available.names[1]
+}
+
+output "eip-address" {
+    description = "Public IP address of bastion (EIP)"
+    value = aws_eip.bastion-host.address
 }
