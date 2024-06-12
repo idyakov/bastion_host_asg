@@ -37,7 +37,7 @@ resource "aws_launch_configuration" "bastion" {
   #  tags {
   #    Name = var.tagProject
   #  }
-
+#
   #Connection with private ssh key
   connection {
     type        = "ssh"

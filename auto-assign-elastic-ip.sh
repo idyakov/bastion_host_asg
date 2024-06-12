@@ -2,7 +2,7 @@
 <<<<<<< HEAD
 #
 =======
-
+#
 >>>>>>> 7bb0fa90f143468dac30e57a6b9b1dab38cfd38c
 # Determine instance-id and current region from metadata
 # Retrieve instance ID

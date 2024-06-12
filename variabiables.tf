@@ -12,7 +12,7 @@ variable "awsSecretKey" {}
 variable "roleName" {
   default = "bastion-role"
 <<<<<<< HEAD
-}
+}#
 #
 =======
 }
