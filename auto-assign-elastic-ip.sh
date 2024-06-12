@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
+<<<<<<< HEAD
 #
+=======
+
+>>>>>>> 7bb0fa90f143468dac30e57a6b9b1dab38cfd38c
 # Determine instance-id and current region from metadata
 # Retrieve instance ID
 instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
@@ -22,4 +26,9 @@ fi
 
 # Associate the address
 echo "Associating EIP"
+<<<<<<< HEAD
 aws ec2 associate-address --region $region --instance-id $instance_id --allocation-id ${allocation_id}
+=======
+aws ec2 associate-address --region $region --instance-id $instance_id --allocation-id ${allocation_id}
+
+>>>>>>> 7bb0fa90f143468dac30e57a6b9b1dab38cfd38c

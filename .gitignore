@@ -1,0 +1,12 @@
+# Don't commit state - big no-no!
+terraform.tfstate*
+.terraform.lock.hcl
+
+# Don't commit private variable values
+terraform.tfvars
+
+# Don't commit provider executables
+.terraform/
+
+# Don't commit key material - also big no-no!
+id_rsa*
